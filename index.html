@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tabaco City Library Visitor Management System">
+    <meta name="theme-color" content="#D4A5E8">
+    <title>Tabaco City Library - Visitor Management</title>
+    
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <!-- Navigation Toast -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- HOME PAGE -->
+    <div id="homePage" class="page active">
+        <div class="home-container">
+            <div class="home-content">
+                <div class="library-logo">
+                    <img src="assets/logo.png" alt="Tabaco City Library Logo" class="logo-image">
+                </div>
+                
+                <div class="department-title">
+                    <h1>Tabaco City Library</h1>
+                    <h1>and Information Center</h1>
+                </div>
+                <p class="subtitle">Visitor Management System</p>
+                
+                <div class="home-buttons">
+                    <button class="home-btn visitor-btn" onclick="showPage('visitorPage')" aria-label="Visitor Login">
+                        <span class="btn-icon">👤</span>
+                        <span class="btn-label">Visitor Login</span>
+                    </button>
+                    <button class="home-btn librarian-btn" onclick="showPage('librarianPage')" aria-label="Librarian Login">
+                        <span class="btn-icon">👨‍💼</span>
+                        <span class="btn-label">Librarian Login</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISITOR PAGE -->
+    <div id="visitorPage" class="page">
+        <button class="back-btn" onclick="showPage('homePage')" aria-label="Back to home">← Back</button>
+        
+        <div class="visitor-options">
+            <div class="visitor-logo-small">
+                <img src="assets/logo.png" alt="Tabaco City Library Logo" class="logo-image">
+            </div>
+            
+            <div class="visitor-title">
+                <h2>Visitor Check-In</h2>
+            </div>
+            <p class="subtitle">Choose an option to continue</p>
+            
+            <div class="options-grid">
+                <div class="option-card" role="button" tabindex="0" onclick="showPage('registeredLoginPage')" onkeypress="handleKeyPress(event, 'registeredLoginPage')">
+                    <div class="option-icon">🆔</div>
+                    <h3>Registered Member</h3>
+                    <p>Sign in with your library account</p>
+                    <button class="option-btn">Sign In</button>
+                </div>
+
+                <div class="option-card" role="button" tabindex="0" onclick="showPage('guestCheckInPage')" onkeypress="handleKeyPress(event, 'guestCheckInPage')">
+                    <div class="option-icon">👋</div>
+                    <h3>Guest Visitor</h3>
+                    <p>Fill form to check in as guest</p>
+                    <button class="option-btn">Check In</button>
+                </div>
+
+                <div class="option-card" role="button" tabindex="0" onclick="showPage('createAccountPage')" onkeypress="handleKeyPress(event, 'createAccountPage')">
+                    <div class="option-icon">➕</div>
+                    <h3>Create Account</h3>
+                    <p>Register for a library account</p>
+                    <button class="option-btn">Register</button>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <h4>Visitors Per Day (Last 7 Days)</h4>
+                        <div class="chart-skeleton" id="dailyChartSkeleton">
+                            <div class="skeleton-bar"></div>
+                            <div class="skeleton-bar"></div>
+                            <div class="skeleton-bar"></div>
+                        </div>
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Visitors Per Month (Last 12 Months)</h4>
+                        <div class="chart-skeleton" id="monthlyChartSkeleton">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                        </div>
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="repeat-visitors-container">
+                    <h4>👥 Repeat Visitors (Multiple Visits)</h4>
+                    <div class="repeat-visitors-list" id="repeatVisitorsList" role="list">
+                        <p class="empty-state">Loading repeat visitors...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTERED LOGIN PAGE -->
+    <div id="registeredLoginPage" class="page">
+        <button class="back-btn" onclick="showPage('visitorPage')">← Back</button>
+        
+        <div class="form-content">
+            <div class="form-logo-small">
+                <img src="assets/logo.png" alt="Tabaco City Library Logo" class="logo-image">
+            </div>
+            <div class="form-department-title">
+                <h2>Tabaco City Library</h2>
+                <h2>and Information Center</h2>
+            </div>
+            <p class="form-title">Registered Member Login</p>
+            <p class="subtitle-small">Sign in with your account credentials</p>
+            
+            <form id="registeredLoginForm" onsubmit="handleRegisteredLogin(event)" novalidate>
+                <div class="form-group">
+                    <label for="regUsername">Username or Email <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="regUsername" placeholder="Enter your username or email" required 
+                               aria-label="Username or Email" aria-required="true">
+                        <span class="error-message" id="regUsernameError"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="regPassword">Password <span class="required">*</span></label>
+                    <div class="input-wrapper password-wrapper">
+                        <input type="password" id="regPassword" placeholder="Enter your password" required 
+                               aria-label="Password" aria-required="true">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('regPassword')" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <span class="error-message" id="regPasswordError"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="regReason">Reason for Visit <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <select id="regReason" class="form-control" required aria-label="Reason for Visit" aria-required="true">
+                            <option value="">-- Select Reason --</option>
+                            <option value="Study">📚 Study</option>
+                            <option value="Reading">📖 Reading</option>
+                            <option value="Research">🔍 Research</option>
+                            <option value="Computer/Internet">💻 Computer/Internet Access</option>
+                            <option value="Borrowing Books">📤 Borrowing Books</option>
+                            <option value="Returning Books">📥 Returning Books</option>
+                            <option value="Meeting/Event">🎤 Meeting/Event</option>
+                            <option value="Reference Help">❓ Reference Help</option>
+                            <option value="Other">✨ Other</option>
+                        </select>
+                        <span class="error-message" id="regReasonError"></span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="regLoginBtn">
+                    <span class="btn-text">✓ Check In</span>
+                    <span class="btn-loader" id="regLoginLoader"></span>
+                </button>
+                
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="#" onclick="showPage('createAccountPage'); return false;">Create one</a></p>
+                </div>
+            </form>
+            
+            <p id="regMessage" class="message" role="alert"></p>
+        </div>
+    </div>
+
+    <!-- Additional pages follow same structure... -->
+    <!-- (Guest Check-In, Create Account, Dashboard, etc.) -->
+
+    <!-- ID CARD MODAL -->
+    <div id="idCardModal" class="modal" role="dialog" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()" aria-label="Close dialog">×</button>
+            
+            <div class="modal-header">
+                <h2 id="modalTitle">Account Created Successfully! 🎉</h2>
+                <p>Your Library ID Card</p>
+            </div>
+
+            <div class="id-card" id="idCard">
+                <div class="card-front">
+                    <div class="card-header">
+                        <img src="assets/logo.png" alt="Library Logo" class="card-logo">
+                        <div class="card-title">
+                            <h3>Tabaco City Library</h3>
+                            <p>and Information Center</p>
+                        </div>
+                    </div>
+
+                    <div class="card-info">
+                        <div class="info-row">
+                            <label>Name:</label>
+                            <p id="cardName"></p>
+                        </div>
+                        <div class="info-row">
+                            <label>Member ID:</label>
+                            <p id="cardId"></p>
+                        </div>
+                        <div class="info-row">
+                            <label>Sector:</label>
+                            <p id="cardSector"></p>
+                        </div>
+                        <div class="info-row">
+                            <label>Organization:</label>
+                            <p id="cardOrg"></p>
+                        </div>
+                    </div>
+
+                    <div class="barcode-section">
+                        <svg id="barcode"></svg>
+                        <p id="barcodeText"></p>
+                    </div>
+
+                    <div class="card-footer">
+                        <p>Valid Library Member</p>
+                        <p id="cardDate"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="printIdCard()" aria-label="Print ID Card">
+                    <i class="fas fa-print"></i> Print Card
+                </button>
+                <button class="btn-secondary" onclick="downloadIdCard()" aria-label="Download ID Card">
+                    <i class="fas fa-download"></i> Download Card
+                </button>
+                <button class="btn-secondary" onclick="completeRegistration()" aria-label="Done with registration">
+                    ✓ Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/visitors.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
